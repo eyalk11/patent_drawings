@@ -2,6 +2,8 @@
 
 A Python tool that automatically adds numbered references and leader lines to patent drawing SVG files in a professional, patent-office-compliant format.
 
+**Recommended for use with SVG files generated from [Mermaid](https://mermaid.js.org/) flowcharts.** The tool has been developed and tested specifically with Mermaid-generated SVG diagrams.
+
 ## Features
 
 - **Automatic Annotation**: Adds numbered reference labels with S-curved leader lines to flowchart nodes
@@ -37,9 +39,13 @@ python add_references.py input.svg --overrides my_overrides.json
 
 ### Example
 
-See the included example files:
-- **euclid.svg** - Original flowchart diagram (input)
-- **euclid_annotated.svg** - Annotated version with numbered references (output)
+See the included example files demonstrating the before and after:
+
+#### Input: euclid.svg (Original Mermaid Flowchart)
+![Original Diagram](euclid.svg)
+
+#### Output: euclid_annotated.svg (With Patent-Style References)
+![Annotated Diagram](euclid_annotated.svg)
 
 To recreate the annotated example:
 ```bash
