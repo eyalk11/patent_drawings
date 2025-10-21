@@ -42,10 +42,22 @@ python add_references.py input.svg --overrides my_overrides.json
 See the included example files demonstrating the before and after:
 
 #### Input: euclid.svg (Original Mermaid Flowchart)
-![Original Diagram](euclid.svg)
+<img width="392" height="595" alt="image" src="https://github.com/user-attachments/assets/aee5c36f-20ed-48e1-af70-6f24b57f5d51" />
 
-#### Output: euclid_annotated.svg (With Patent-Style References)
-![Annotated Diagram](euclid_annotated.svg)
+
+
+#### First try with the script 
+
+<img width="389" height="605" alt="image" src="https://github.com/user-attachments/assets/cd933a43-920f-40d2-a86b-07fd9c63ab05" />
+
+#### Final Output (After simple manual override) 
+<img width="377" height="601" alt="image" src="https://github.com/user-attachments/assets/9935f693-8533-4fa6-9e2b-8db34a50160a" />
+
+
+
+
+
+
 
 To recreate the annotated example:
 ```bash
