@@ -188,5 +188,5 @@ As the license suggests, this tool is provided "as is" without warranty of any k
 
 ## Reference 
 
-I took inspiration from (blog)[https://blog.patentology.com.au/2025/08/can-you-turn-ai-chatbot-into-patent.html] 
+I took inspiration from [blog](https://blog.patentology.com.au/2025/08/can-you-turn-ai-chatbot-into-patent.html)
 which suggests to do it using AI.
