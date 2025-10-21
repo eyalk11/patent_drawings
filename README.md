@@ -144,6 +144,24 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 ## Workflow Example
 
 1. Create your flowchart diagram in Mermaid or another tool
+For Mermaid, I have used 
+```
+---
+config:
+  layout: dagre
+  flowchart:
+    curve: stepAfter
+    fontFamily: Arial, sans-serif
+    fontSize: 11pt
+    nodeSpacing: 50
+    rankSpacing: 50
+    stroke: '#000000'
+    arrowMarkerAbsolute: false
+---
+
+```
+
+
 2. Export as SVG
 3. Run the annotation tool:
    ```bash
@@ -162,3 +180,13 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 - Use `force_side` when automatic side selection isn't optimal
 - Use `curve_width` to fine-tune leader line length for aesthetic consistency
 - The tool can be run multiple times - it removes existing annotations before adding new ones
+
+
+## Disclaimer 
+No responsibility is taken for the correctness or suitability of this tool for any specific patent application. Always verify compliance with the relevant patent office guidelines.
+As the license suggests, this tool is provided "as is" without warranty of any kind. 
+
+## Reference 
+
+I took inspiration from (blog)[https://blog.patentology.com.au/2025/08/can-you-turn-ai-chatbot-into-patent.html] 
+which suggests to do it using AI.
