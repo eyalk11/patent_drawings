@@ -12,6 +12,7 @@ A Python tool that automatically adds numbered references and leader lines to pa
 - **Customizable Overrides**: Use JSON files to override automatic placement for specific elements
 - **Patent-Style Leader Lines**: Creates professional S-curved leader lines using cubic Bézier curves
 - **Command-Line Interface**: Full argument parsing with flexible options
+- **Zero dependencies**: no pip install needed
 
 ## Installation
 
