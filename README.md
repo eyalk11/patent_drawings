@@ -162,7 +162,3 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 - Use `force_side` when automatic side selection isn't optimal
 - Use `curve_width` to fine-tune leader line length for aesthetic consistency
 - The tool can be run multiple times - it removes existing annotations before adding new ones
-
-## License
-
-[Add your license information here] 
