@@ -116,7 +116,7 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 
 ## How It Works
 
-1. **Parse SVG**: Extracts flowchart node information (rectangles, circles, polygons)
+1. **Parse SVG**: Extracts flowchart node information (rectangles, circles, polygons). It includes 
 2. **Sort Nodes**: Orders nodes top-to-bottom, then left-to-right
 3. **Smart Placement**:
    - Determines optimal side (left/right) based on diagram layout
@@ -143,8 +143,57 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 
 ## Workflow Example
 
-1. Create your flowchart diagram in Mermaid or another tool
-For Mermaid, I have used 
+### Stage 0: Write Your Flowchart in Mermaid
+
+Create your flowchart using [Mermaid](https://mermaid.js.org/) syntax. **Important**: The node IDs you assign in Mermaid (e.g., `id200`, `id201`, `id203`) are what you'll reference in override files to customize annotation placement for specific nodes.
+
+<details>
+<summary>Example: Euclid's Algorithm Flowchart (euclid.mmd)</summary>
+
+```mermaid
+---
+config:
+  layout: dagre
+  flowchart:
+    curve: cardinal
+    fontFamily: Arial, sans-serif
+    fontSize: 14pt
+    nodeSpacing: 50
+    rankSpacing: 50
+    stroke: '#000000'
+    arrowMarkerAbsolute: false
+---
+flowchart TB
+    id200("Start") --> id201[/"Input two positive integers a, b"/]
+    id201 --> id202{"Is b > a?"}
+    id202 -- Yes --> id203["SWAP a and b"]
+    id202 -- No --> id204{"Is b ≠ 0?"}
+    id203 --> id204
+    id204 -- Yes --> id205["remainder ← a MOD b"]
+    id205 --> id206["a ← b"]
+    id206 --> id207["b ← remainder"]
+    id207 --> id204
+    id204 -- No --> id208[/"RETURN a"/]
+    id208 --> id209("End")
+```
+
+**Note**: Each node has an explicit ID (id200-id209). These IDs are used by the annotation tool to identify nodes and can be referenced in override files.
+
+**Override file for this diagram**:
+```json
+{
+  "203": {
+    "force_side": "right"
+  }
+}
+```
+The override references node `id203` by its numeric portion (`"203"`), forcing the SWAP annotation to the right side.
+
+</details>
+
+### Recommended Mermaid Configuration
+
+For Mermaid flowcharts, use this configuration for best results:
 ```
 ---
 config:
@@ -161,17 +210,18 @@ config:
 
 ```
 
+### Remaining Steps
 
-2. Export as SVG
-3. Run the annotation tool:
+1. Export your Mermaid diagram as SVG
+2. Run the annotation tool:
    ```bash
    python add_references.py diagram.svg
    ```
-4. If needed, create an override file for specific nodes:
+3. If needed, create an override file for specific nodes:
    ```bash
    python add_references.py diagram.svg --overrides custom.json
    ```
-5. Use the annotated SVG in your patent application
+4. Use the annotated SVG in your patent application
 
 ## Tips
 

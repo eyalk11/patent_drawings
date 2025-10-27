@@ -1,0 +1,24 @@
+---
+config:
+  layout: dagre
+  flowchart:
+    curve: cardinal
+    fontFamily: Arial, sans-serif
+    fontSize: 14pt
+    nodeSpacing: 50
+    rankSpacing: 50
+    stroke: '#000000'
+    arrowMarkerAbsolute: false
+---
+flowchart TB
+    id200("Start") --> id201[/"Input two positive integers a, b"/]
+    id201 --> id202{"Is b > a?"}
+    id202 -- Yes --> id203["SWAP a and b"]
+    id202 -- No --> id204{"Is b ≠ 0?"}
+    id203 --> id204
+    id204 -- Yes --> id205["remainder ← a MOD b"]
+    id205 --> id206["a ← b"]
+    id206 --> id207["b ← remainder"]
+    id207 --> id204
+    id204 -- No --> id208[/"RETURN a"/]
+    id208 --> id209("End")
