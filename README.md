@@ -55,38 +55,6 @@ options:
                         JSON file with special placement overrides
 ```
 
-## Override File Format
-
-Create a JSON file to customize placement for specific nodes. See [OVERRIDE_FORMAT.md](OVERRIDE_FORMAT.md) for complete documentation.
-
-### Example Override File
-
-```json
-{
-  "512b": {
-    "force_side": "right",
-    "curve_width": 32.0
-  },
-  "506": {
-    "force_side": "right",
-    "curve_width": 30.0
-  },
-  "209": {
-    "force_side": "right",
-    "curve_width": 80
-  }
-}
-```
-
-### Available Override Options
-
-- **`force_side`**: Force label to "left" or "right" side
-- **`curve_width`**: Set fixed horizontal distance for leader line (in pixels)
-- **`label_text`**: Override default label text
-- **`base_pad_left`** / **`base_pad_right`**: Adjust padding distance
-- **`max_extra`**: Maximum additional spacing for collision avoidance
-
-See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 
 ## How It Works
 
@@ -99,21 +67,13 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 4. **Generate Annotations**: Creates text labels and S-curved leader lines
 5. **Output SVG**: Writes annotated SVG with professional patent-style references
 
-## Technical Details
+### Tips
 
-- **Leader Line Style**: S-shaped cubic Bézier curves with perpendicular offsets at 1/3 and 2/3 control points
-- **Clearance**: 15px minimum clearance maintained between all elements
-- **Font**: Arial 11pt for labels
-- **Line Width**: 0.8px stroke width for leader lines
-- **Node Detection**: Supports rectangles, circles, and polygons (diamonds, hexagons)
-
-## Files
-
-- **add_references.py** - Main script
-- **overrides_example.json** - Sample override file with defaults
-- **OVERRIDE_FORMAT.md** - Complete override file documentation
-- **euclid.svg** - Example input diagram
-- **euclid_annotated.svg** - Example output with annotations
+- Start without overrides and let the automatic placement work
+- Only add overrides for problematic nodes that need manual adjustment
+- Use `force_side` when automatic side selection isn't optimal
+- Use `curve_width` to fine-tune leader line length for aesthetic consistency
+- The tool can be run multiple times - it removes existing annotations before adding new ones
 
 ## Workflow Example
 
@@ -165,25 +125,6 @@ The override references node `id203` by its numeric portion (`"203"`), forcing t
 
 </details>
 
-### Recommended Mermaid Configuration
-
-For Mermaid flowcharts, use this configuration for best results:
-```
----
-config:
-  layout: dagre
-  flowchart:
-    curve: stepAfter
-    fontFamily: Arial, sans-serif
-    fontSize: 11pt
-    nodeSpacing: 50
-    rankSpacing: 50
-    stroke: '#000000'
-    arrowMarkerAbsolute: false
----
-
-```
-
 ### Stage 2: Export Your Mermaid Diagram as SVG
 
 After creating your flowchart in Mermaid, export it as an SVG file. For example, exporting the Euclid algorithm flowchart creates `euclid.svg`:
@@ -228,20 +169,69 @@ Final result with improved placement:
 
 Use the final annotated SVG in your patent application.
 
-## Tips
-
-- Start without overrides and let the automatic placement work
-- Only add overrides for problematic nodes that need manual adjustment
-- Use `force_side` when automatic side selection isn't optimal
-- Use `curve_width` to fine-tune leader line length for aesthetic consistency
-- The tool can be run multiple times - it removes existing annotations before adding new ones
 
 
-## Disclaimer 
-No responsibility is taken for the correctness or suitability of this tool for any specific patent application. Always verify compliance with the relevant patent office guidelines.
-As the license suggests, this tool is provided "as is" without warranty of any kind. 
+## Technical Details
+
+### Annotation System
+
+- **Leader Line Style**: S-shaped cubic Bézier curves with perpendicular offsets at 1/3 and 2/3 control points
+- **Clearance**: 15px minimum clearance maintained between all elements
+- **Font**: Arial 11pt for labels
+- **Line Width**: 0.8px stroke width for leader lines
+- **Node Detection**: Supports rectangles, circles, and polygons (diamonds, hexagons)
+
+### Recommended Mermaid Configuration
+
+For Mermaid flowcharts, use this configuration for best results:
+```
+---
+config:
+  layout: dagre
+  flowchart:
+    curve: stepAfter
+    fontFamily: Arial, sans-serif
+    fontSize: 11pt
+    nodeSpacing: 50
+    rankSpacing: 50
+    stroke: '#000000'
+    arrowMarkerAbsolute: false
+---
+
+```
+
+### Files
+
+- **add_references.py** - Main script
+- **overrides_example.json** - Sample override file with defaults
+- **OVERRIDE_FORMAT.md** - Complete override file documentation
+- **euclid.svg** - Example input diagram
+- **euclid_annotated.svg** - Example output with annotations
+
+
+### Override File Format
+
+Create a JSON file to customize placement for specific nodes. See [OVERRIDE_FORMAT.md](OVERRIDE_FORMAT.md) for complete documentation.
+
+
+#### Available Override Options
+
+- **`force_side`**: Force label to "left" or "right" side
+- **`curve_width`**: Set fixed horizontal distance for leader line (in pixels)
+- **`label_text`**: Override default label text
+- **`base_pad_left`** / **`base_pad_right`**: Adjust padding distance
+- **`max_extra`**: Maximum additional spacing for collision avoidance
+
+See `OVERRIDE_FORMAT.md` for more details.
+
+
 
 ## Reference 
 
 I took inspiration from [blog](https://blog.patentology.com.au/2025/08/can-you-turn-ai-chatbot-into-patent.html)
 which suggests to do it using AI.
+
+## Disclaimer 
+No responsibility is taken for the correctness or suitability of this tool for any specific patent application. Always verify compliance with the relevant patent office guidelines.
+As the license suggests, this tool is provided "as is" without warranty of any kind. 
+
