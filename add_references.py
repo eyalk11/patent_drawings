@@ -406,6 +406,56 @@ def load_special_overrides(json_file=None):
 
     return default_overrides
 
+def expand_viewbox(content, padding=150):
+    """Expand the SVG viewBox to add padding for annotations.
+
+    Args:
+        content: SVG content string
+        padding: Amount of padding to add on all sides (default: 150px)
+
+    Returns:
+        Updated SVG content with expanded viewBox
+    """
+    vb_match = re.search(r'viewBox="\s*([0-9.-]+)\s+([0-9.-]+)\s+([0-9.]+)\s+([0-9.]+)"', content)
+    if vb_match:
+        x = float(vb_match.group(1))
+        y = float(vb_match.group(2))
+        w = float(vb_match.group(3))
+        h = float(vb_match.group(4))
+
+        # Expand viewBox by adding padding on all sides
+        new_x = x - padding
+        new_y = y - padding
+        new_w = w + (2 * padding)
+        new_h = h + (2 * padding)
+
+        # Also need to translate all content to account for new origin
+        old_viewbox = vb_match.group(0)
+        new_viewbox = f'viewBox="{new_x:.1f} {new_y:.1f} {new_w:.1f} {new_h:.1f}"'
+
+        # Replace the main SVG viewBox (first occurrence)
+        content = content.replace(old_viewbox, new_viewbox, 1)
+
+        # Add a transform to shift existing content by the padding amount
+        # Find the main group and add transform
+        content = re.sub(
+            r'(<svg[^>]*>)(\s*)(<g)',
+            rf'\1\2<g transform="translate({padding}, {padding})">\3',
+            content,
+            count=1
+        )
+
+        # Add closing tag for the transform group before the final </svg>
+        content = re.sub(
+            r'(</g>)(\s*</svg>)',
+            r'\1</g>\2',
+            content
+        )
+
+        print(f"Expanded viewBox from {w:.1f}x{h:.1f} to {new_w:.1f}x{new_h:.1f} (added {padding}px padding)")
+
+    return content
+
 def add_annotations_to_svg(content, nodes, special_overrides=None):
     """Add annotations ensuring:
     - 15px (OFF) clearance for label boxes and leader endpoints from all other nodes/labels
@@ -799,9 +849,23 @@ Examples:
     # Remove existing annotations
     content = remove_existing_annotations(content)
 
-    # Extract node information
+    # Extract node information BEFORE expanding viewBox
     nodes = extract_node_info_from_content(content)
-    print(f"Found {len(nodes)} flowchart nodes:")
+
+    # Expand viewBox to add padding for annotations
+    padding = 150
+    content = expand_viewbox(content, padding=padding)
+
+    # # Adjust node coordinates to account for the viewBox expansion transform
+    # for node in nodes:
+        # node['x'] += padding
+        # node['y'] += padding
+        # node['cx'] += padding
+        # node['cy'] += padding
+        # # Also adjust polygon points if they exist
+        # if node.get('points'):
+            # node['points'] = [(x + padding, y + padding) for x, y in node['points']]
+    # print(f"Found {len(nodes)} flowchart nodes:")
 
     for node in nodes:
         shape_info = f"shape={node.get('shape', 'unknown')}"

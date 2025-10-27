@@ -171,7 +171,8 @@ options:
 - **Clearance**: 15px minimum clearance maintained between all elements
 - **Font**: Arial 11pt for labels
 - **Line Width**: 0.8px stroke width for leader lines
-- **Node Detection**: Supports rectangles, circles, and polygons (diamonds, hexagons)
+- **Node Detection**: Supports rectangles, circles, and polygons (diamonds, hexagons, parallelograms, trapezoids)
+- **Smart Edge Detection**: Automatically detects parallelograms and trapezoids, placing leader lines along slanted edges for natural appearance
 
 ### Recommended Mermaid Configuration
 
