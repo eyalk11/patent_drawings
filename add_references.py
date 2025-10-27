@@ -76,6 +76,138 @@ def find_nodes_section(root):
 
     return None
 
+def is_diamond(points):
+    """Detect if a polygon is a diamond/rhombus (decision node).
+
+    A diamond has:
+    - 4 vertices arranged in a diamond pattern
+    - One vertex each at top, bottom, left, and right
+    - In Mermaid SVGs: typically 3 unique x-values and 3 unique y-values
+      (center coordinate appears in two opposite vertices)
+    """
+    if len(points) != 4:
+        return False
+
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    from collections import Counter
+    x_counts = Counter(xs)
+    y_counts = Counter(ys)
+
+    x_min = min(xs)
+    x_max = max(xs)
+    y_min = min(ys)
+    y_max = max(ys)
+    x_mid = (x_min + x_max) / 2.0
+    y_mid = (y_min + y_max) / 2.0
+
+    # Diamond pattern 1: 3 unique X and 3 unique Y (Mermaid style)
+    # One point at left (x_min, y_mid), right (x_max, y_mid), top (x_mid, y_min), bottom (x_mid, y_max)
+    if len(x_counts) == 3 and len(y_counts) == 3:
+        # Check if we have the expected diamond vertices
+        tolerance = 1.0  # Allow 1px tolerance for floating point
+
+        # Find points near the extremes
+        left_pts = [p for p in points if abs(p[0] - x_min) < tolerance]
+        right_pts = [p for p in points if abs(p[0] - x_max) < tolerance]
+        top_pts = [p for p in points if abs(p[1] - y_min) < tolerance]
+        bottom_pts = [p for p in points if abs(p[1] - y_max) < tolerance]
+
+        # Diamond should have exactly one point at each extreme
+        if len(left_pts) == 1 and len(right_pts) == 1 and len(top_pts) == 1 and len(bottom_pts) == 1:
+            # Verify the left/right points are near y_mid and top/bottom near x_mid
+            left_y = left_pts[0][1]
+            right_y = right_pts[0][1]
+            top_x = top_pts[0][0]
+            bottom_x = bottom_pts[0][0]
+
+            # Allow 30% tolerance for diamond proportions
+            y_range = y_max - y_min
+            x_range = x_max - x_min
+
+            if (abs(left_y - y_mid) < y_range * 0.3 and
+                abs(right_y - y_mid) < y_range * 0.3 and
+                abs(top_x - x_mid) < x_range * 0.3 and
+                abs(bottom_x - x_mid) < x_range * 0.3):
+                return True
+
+    return False
+
+def is_slanted_quadrilateral(points):
+    """Detect if a polygon is a parallelogram or trapezoid (4 points with slanted left/right edges).
+
+    This includes both:
+    - Parallelograms: 4 points with parallel slanted edges (e.g., input/output shapes in flowcharts)
+    - Trapezoids: 4 points with at least one pair of slanted edges
+
+    Returns True for shapes with slanted vertical edges, False for rectangles and diamonds.
+    """
+    if len(points) != 4:
+        return False
+
+    # First check if it's a diamond - diamonds should NOT be treated as slanted quads
+    if is_diamond(points):
+        return False
+
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    from collections import Counter
+    x_counts = Counter(xs)
+    y_counts = Counter(ys)
+
+    # Rectangle has 2 unique x values and 2 unique y values (all edges axis-aligned)
+    if len(x_counts) == 2 and len(y_counts) == 2:
+        return False  # It's a rectangle
+
+    # Parallelogram: 4 unique x values but only 2 unique y values (horizontal top/bottom)
+    if len(y_counts) == 2 and len(x_counts) == 4:
+        return True
+
+    # Trapezoid or other quadrilateral with slanted edges
+    # If we have 4 unique x values, it likely has slanted vertical edges
+    if len(x_counts) == 4:
+        return True
+
+    # Also handle cases where we have 3 unique x or y values (partial slant)
+    if len(x_counts) >= 3 or len(y_counts) >= 3:
+        return True
+
+    return False
+
+def get_edge_intersection_y(points, x_target, side='left'):
+    """
+    For a parallelogram, find the y-coordinate on the left or right edge at a given y-level.
+    Returns adjusted x-coordinate that lies on the slanted edge.
+
+    side: 'left' or 'right'
+    """
+    if len(points) != 4:
+        return None
+
+    # Sort points by x-coordinate to identify left and right edges
+    sorted_by_x = sorted(points, key=lambda p: p[0])
+
+    if side == 'left':
+        # Left edge: two leftmost points
+        edge_points = sorted_by_x[:2]
+    else:
+        # Right edge: two rightmost points
+        edge_points = sorted_by_x[2:]
+
+    # Sort edge points by y to get top and bottom
+    edge_points = sorted(edge_points, key=lambda p: p[1])
+    p1, p2 = edge_points
+
+    # Linear interpolation: find x at the target y
+    if abs(p2[1] - p1[1]) < 0.1:  # Nearly horizontal edge
+        return None
+
+    # Line equation: x = x1 + (x2 - x1) * (y - y1) / (y2 - y1)
+    # We want to find x when y = y_target
+    # But we're given x_target and want to adjust it to lie on the edge
+    # Actually, we want to find the x-coordinate on the edge at the center y-level
+    return p1[0] + (p2[0] - p1[0]) * 0.5  # Return x at midpoint of edge
+
 def extract_node_info_from_content(content):
     """Extract node information directly from SVG content using regex, accounting for group transforms."""
     nodes = []
@@ -131,7 +263,8 @@ def extract_node_info_from_content(content):
                 nodes.append({
                     'id': node_id,
                     'x': ax, 'y': ay, 'width': width, 'height': height,
-                    'cx': ax + width/2, 'cy': ay + height/2
+                    'cx': ax + width/2, 'cy': ay + height/2,
+                    'shape': 'rect'
                 })
                 continue
 
@@ -153,11 +286,12 @@ def extract_node_info_from_content(content):
                 nodes.append({
                     'id': node_id,
                     'x': acx - r, 'y': acy - r, 'width': 2*r, 'height': 2*r,
-                    'cx': acx, 'cy': acy
+                    'cx': acx, 'cy': acy,
+                    'shape': 'circle'
                 })
                 continue
 
-            # Extract polygon information (for diamonds, hexagons)
+            # Extract polygon information (for diamonds, hexagons, parallelograms)
             polygon_match = re.search(r'<polygon[^>]+points="([^"]+)"', node_content)
             if polygon_match:
                 points_str = polygon_match.group(1)
@@ -184,10 +318,28 @@ def extract_node_info_from_content(content):
                     ys = [p[1] for p in points]
                     x_min, x_max = min(xs), max(xs)
                     y_min, y_max = min(ys), max(ys)
+
+                    # Debug: print polygon coordinates for analysis
+                    from collections import Counter
+                    x_counts = Counter(xs)
+                    y_counts = Counter(ys)
+                    print(f"\n  Polygon {node_id}: {len(points)} points")
+                    print(f"    Points: {points}")
+                    print(f"    Unique X values: {len(x_counts)}, Unique Y values: {len(y_counts)}")
+
+                    # Detect shape type: diamond, slanted quad (parallelogram/trapezoid), or generic polygon
+                    is_dia = is_diamond(points)
+                    is_slanted = is_slanted_quadrilateral(points) if not is_dia else False
+
+                    shape_type = 'diamond' if is_dia else ('slanted_quad' if is_slanted else 'polygon')
+                    print(f"    Classified as: {shape_type}")
+
                     nodes.append({
                         'id': node_id,
                         'x': x_min, 'y': y_min, 'width': x_max-x_min, 'height': y_max-y_min,
-                        'cx': (x_min+x_max)/2, 'cy': (y_min+y_max)/2
+                        'cx': (x_min+x_max)/2, 'cy': (y_min+y_max)/2,
+                        'shape': shape_type,
+                        'points': points if is_slanted else None
                     })
 
     return nodes
@@ -338,14 +490,32 @@ def add_annotations_to_svg(content, nodes, special_overrides=None):
 
                 text_y = node['cy'] + text_height
                 if place_left:
-                    end_x = node['x'] - 2
+                    # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                    if node.get('shape') == 'slanted_quad' and node.get('points'):
+                        edge_x = get_edge_intersection_y(node['points'], node['x'], side='left')
+                        if edge_x is not None:
+                            end_x = edge_x - 2
+                        else:
+                            end_x = node['x'] - 2
+                    else:
+                        end_x = node['x'] - 2
+
                     end_y = node['cy']
                     start_x = end_x - fw
                     start_y = text_y - (text_h / 2.0)
                     text_x = start_x - text_w  # right edge of label at start_x
                     text_anchor = 'start'
                 else:
-                    end_x = node['x'] + node['width'] + 2
+                    # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                    if node.get('shape') == 'slanted_quad' and node.get('points'):
+                        edge_x = get_edge_intersection_y(node['points'], node['x'] + node['width'], side='right')
+                        if edge_x is not None:
+                            end_x = edge_x + 2
+                        else:
+                            end_x = node['x'] + node['width'] + 2
+                    else:
+                        end_x = node['x'] + node['width'] + 2
+
                     end_y = node['cy']
                     start_x = end_x + fw
                     start_y = text_y - (text_h / 2.0)
@@ -397,7 +567,17 @@ def add_annotations_to_svg(content, nodes, special_overrides=None):
             if place_left:
                 start_x = label_bbox[0] + label_bbox[2]  # right edge
                 start_y = label_bbox[1] + (label_bbox[3] / 2.0)  # vertical center of label
-                end_x = node['x'] - 2
+
+                # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                if node.get('shape') == 'slanted_quad' and node.get('points'):
+                    edge_x = get_edge_intersection_y(node['points'], node['x'], side='left')
+                    if edge_x is not None:
+                        end_x = edge_x - 2
+                    else:
+                        end_x = node['x'] - 2
+                else:
+                    end_x = node['x'] - 2
+
                 end_y = node['cy']
                 # Adjust termination point outward if it violates clearance vs other boxes
                 ex = 0.0
@@ -411,7 +591,17 @@ def add_annotations_to_svg(content, nodes, special_overrides=None):
             else:
                 start_x = label_bbox[0]                 # left edge
                 start_y = label_bbox[1] + (label_bbox[3] / 2.0)  # vertical center of label
-                end_x = node['x'] + node['width'] + 2
+
+                # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                if node.get('shape') == 'slanted_quad' and node.get('points'):
+                    edge_x = get_edge_intersection_y(node['points'], node['x'] + node['width'], side='right')
+                    if edge_x is not None:
+                        end_x = edge_x + 2
+                    else:
+                        end_x = node['x'] + node['width'] + 2
+                else:
+                    end_x = node['x'] + node['width'] + 2
+
                 end_y = node['cy']
                 ex = 0.0
                 while ex <= max_extra:
@@ -497,7 +687,17 @@ def add_annotations_to_svg(content, nodes, special_overrides=None):
                 text_y = node['cy'] + text_height
                 start_x = text_x + text_w
                 start_y = text_y - (text_h / 2.0)
-                end_x = node['x'] - 2
+
+                # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                if node.get('shape') == 'slanted_quad' and node.get('points'):
+                    edge_x = get_edge_intersection_y(node['points'], node['x'], side='left')
+                    if edge_x is not None:
+                        end_x = edge_x - 2
+                    else:
+                        end_x = node['x'] - 2
+                else:
+                    end_x = node['x'] - 2
+
                 end_y = node['cy']
             else:
                 text_x = node['x'] + node['width'] + bpr
@@ -505,7 +705,17 @@ def add_annotations_to_svg(content, nodes, special_overrides=None):
                 text_y = node['cy'] + text_height
                 start_x = text_x
                 start_y = text_y - (text_h / 2.0)
-                end_x = node['x'] + node['width'] + 2
+
+                # For slanted quadrilaterals (parallelograms/trapezoids), adjust end_x to follow the slanted edge
+                if node.get('shape') == 'slanted_quad' and node.get('points'):
+                    edge_x = get_edge_intersection_y(node['points'], node['x'] + node['width'], side='right')
+                    if edge_x is not None:
+                        end_x = edge_x + 2
+                    else:
+                        end_x = node['x'] + node['width'] + 2
+                else:
+                    end_x = node['x'] + node['width'] + 2
+
                 end_y = node['cy']
 
             path_d = create_subtle_leader_line(start_x, start_y, end_x, end_y)
@@ -594,7 +804,8 @@ Examples:
     print(f"Found {len(nodes)} flowchart nodes:")
 
     for node in nodes:
-        print(f"  {node['id']}: center=({node['cx']:.0f}, {node['cy']:.0f}), size={node['width']:.0f}x{node['height']:.0f}")
+        shape_info = f"shape={node.get('shape', 'unknown')}"
+        print(f"  {node['id']}: center=({node['cx']:.0f}, {node['cy']:.0f}), size={node['width']:.0f}x{node['height']:.0f}, {shape_info}")
 
     if nodes:
         # Add annotations with special overrides
