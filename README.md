@@ -38,32 +38,6 @@ python add_references.py input.svg -o output.svg
 python add_references.py input.svg --overrides my_overrides.json
 ```
 
-### Example
-
-See the included example files demonstrating the before and after:
-
-#### Input: euclid.svg (Original Mermaid Flowchart)
-<img width="392" height="595" alt="image" src="https://github.com/user-attachments/assets/aee5c36f-20ed-48e1-af70-6f24b57f5d51" />
-
-
-
-#### First try with the script 
-
-<img width="389" height="605" alt="image" src="https://github.com/user-attachments/assets/cd933a43-920f-40d2-a86b-07fd9c63ab05" />
-
-#### Final Output (After simple manual override) 
-<img width="377" height="601" alt="image" src="https://github.com/user-attachments/assets/9935f693-8533-4fa6-9e2b-8db34a50160a" />
-
-
-
-
-
-
-
-To recreate the annotated example:
-```bash
-python add_references.py euclid.svg
-```
 
 ## Command-Line Options
 
@@ -143,14 +117,14 @@ See `overrides_example.json` and `OVERRIDE_FORMAT.md` for more details.
 
 ## Workflow Example
 
-### Stage 0: Write Your Flowchart in Mermaid
+### Stage 1: Write Your Flowchart in Mermaid
 
 Create your flowchart using [Mermaid](https://mermaid.js.org/) syntax. **Important**: The node IDs you assign in Mermaid (e.g., `id200`, `id201`, `id203`) are what you'll reference in override files to customize annotation placement for specific nodes.
 
 <details>
 <summary>Example: Euclid's Algorithm Flowchart (euclid.mmd)</summary>
 
-```mermaid
+```
 ---
 config:
   layout: dagre
@@ -210,18 +184,49 @@ config:
 
 ```
 
-### Remaining Steps
+### Stage 2: Export Your Mermaid Diagram as SVG
 
-1. Export your Mermaid diagram as SVG
-2. Run the annotation tool:
-   ```bash
-   python add_references.py diagram.svg
-   ```
-3. If needed, create an override file for specific nodes:
-   ```bash
-   python add_references.py diagram.svg --overrides custom.json
-   ```
-4. Use the annotated SVG in your patent application
+After creating your flowchart in Mermaid, export it as an SVG file. For example, exporting the Euclid algorithm flowchart creates `euclid.svg`:
+
+<img width="392" height="595" alt="Original Mermaid Flowchart" src="https://github.com/user-attachments/assets/aee5c36f-20ed-48e1-af70-6f24b57f5d51" />
+
+### Stage 3: Run the Annotation Tool
+
+Run the script to automatically add numbered annotations:
+
+```bash
+python add_references.py euclid.svg
+```
+
+This creates `euclid_annotated.svg` with automatic annotation placement:
+
+<img width="389" height="605" alt="First automated annotation" src="https://github.com/user-attachments/assets/cd933a43-920f-40d2-a86b-07fd9c63ab05" />
+
+### Stage 4: (Optional) Create Override File for Fine-Tuning
+
+If some annotations need adjustment (like node 203 in the example above), create an override JSON file:
+
+```json
+{
+  "203": {
+    "force_side": "right"
+  }
+}
+```
+
+Then run with the override:
+
+```bash
+python add_references.py euclid.svg --overrides overrides.json
+```
+
+Final result with improved placement:
+
+<img width="377" height="601" alt="Final output with override" src="https://github.com/user-attachments/assets/9935f693-8533-4fa6-9e2b-8db34a50160a" />
+
+### Stage 5: Use the Annotated SVG
+
+Use the final annotated SVG in your patent application.
 
 ## Tips
 
