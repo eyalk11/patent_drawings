@@ -39,41 +39,18 @@ python add_references.py input.svg --overrides my_overrides.json
 ```
 
 
-## Command-Line Options
-
-```
-usage: add_references.py [-h] [-o OUTPUT] [--overrides OVERRIDES] input_file
-
-positional arguments:
-  input_file            Input SVG file path
-
-options:
-  -h, --help            Show help message and exit
-  -o OUTPUT, --output OUTPUT
-                        Output SVG file path (default: input_annotated.svg)
-  --overrides OVERRIDES
-                        JSON file with special placement overrides
-```
 
 
-## How It Works
+### How It Works
 
-1. **Parse SVG**: Extracts flowchart node information (rectangles, circles, polygons). It includes 
-2. **Sort Nodes**: Orders nodes top-to-bottom, then left-to-right
-3. **Smart Placement**:
+1. **Parses SVG**: Extracts flowchart node information (rectangles, circles, polygons, node name) from the input SVG. 
+2. **Generate Annotations**: Creates text labels and S-curved leader lines
    - Determines optimal side (left/right) based on diagram layout
    - Calculates label position with 15px clearance from all elements
    - Can switch sides if it results in a shorter, collision-free leader line
-4. **Generate Annotations**: Creates text labels and S-curved leader lines
-5. **Output SVG**: Writes annotated SVG with professional patent-style references
+   - Reads node IDs from SVG (can be specified in Mermaid) for determine the reference
+3. **Output SVG**: Writes annotated SVG with professional patent-style references
 
-### Tips
-
-- Start without overrides and let the automatic placement work
-- Only add overrides for problematic nodes that need manual adjustment
-- Use `force_side` when automatic side selection isn't optimal
-- Use `curve_width` to fine-tune leader line length for aesthetic consistency
-- The tool can be run multiple times - it removes existing annotations before adding new ones
 
 ## Workflow Example
 
@@ -173,6 +150,21 @@ Use the final annotated SVG in your patent application.
 
 ## Technical Details
 
+### Command-Line Options
+
+```
+usage: add_references.py [-h] [-o OUTPUT] [--overrides OVERRIDES] input_file
+
+positional arguments:
+  input_file            Input SVG file path
+
+options:
+  -h, --help            Show help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Output SVG file path (default: input_annotated.svg)
+  --overrides OVERRIDES
+                        JSON file with special placement overrides
+```
 ### Annotation System
 
 - **Leader Line Style**: S-shaped cubic Bézier curves with perpendicular offsets at 1/3 and 2/3 control points
@@ -224,6 +216,14 @@ Create a JSON file to customize placement for specific nodes. See [OVERRIDE_FORM
 
 See `OVERRIDE_FORMAT.md` for more details.
 
+### Tips
+
+- Start without overrides and let the automatic placement work
+- Only add overrides for problematic nodes that need manual adjustment
+- Use `force_side` when automatic side selection isn't optimal
+- Use `curve_width` to fine-tune leader line length for aesthetic consistency
+- The tool can be run multiple times - it removes existing annotations before adding new ones
+- The tool prints to console information about edges placement and width
 
 
 ## Reference 
