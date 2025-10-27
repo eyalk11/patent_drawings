@@ -146,9 +146,9 @@ Final result with improved placement:
 
 Use the final annotated SVG in your patent application.
 
-*Note*:
+**Note**
 The example workflow was from time that the script mishandled parallelograms. 
-After a revision, this works, and also no override was needed. I kept the original workflow as it is more ilustrative. 
+After a revision, this works, and also no override was needed. I kept the original workflow as it is more illustrative. 
 
 <img width="366" height="656" alt="image" src="https://github.com/user-attachments/assets/00f25ef2-82c3-4883-8cdc-db34726cab5e" />
 
